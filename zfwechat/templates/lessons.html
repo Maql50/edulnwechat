@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title%}
+我的课表
+{% endblock %}
+
+{% block stuName %}
+{{ name }}
+{% endblock %}
+
+{% block main %}
+  <div class="bs-example4" data-example-id="contextual-table">
+    <table class="table" style="border-radius:10px;background: RGB(217,237,247)">
+      <thead>
+        <tr>
+          <th width="1%">时间</th>
+          <th>周一</th>
+          <th>周二</th>
+          <th>周三</th>
+          <th>周四</th>
+          <th>周五</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ lessons|safe }}
+      </tbody>
+    </table>
+   </div>
+{% endblock %}    
+

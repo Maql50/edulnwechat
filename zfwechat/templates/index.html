@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title%}
+欢迎登录
+{% endblock %}
+
+{% block stuName %}
+{{name}}
+{% endblock %}
+
+{% block main %}
+<div class="col-md-4 span_4">
+		 <div class="col_2">
+		  <div class="box_1">
+		   <div class="col-md-6 col_1_of_2 span_1_of_2">
+             <a class="tiles_info" href="/wechat/marks">
+			    <div class="tiles-head red1">
+			        <div class="text-center"><i class="fa fa-check-square-o nav_icon"></i></div>
+			    </div>
+			    <div class="tiles-body red">个人成绩</div>
+			 </a>
+		   </div>
+		   <div class="col-md-6 col_1_of_2 span_1_of_2">
+              <a class="tiles_info tiles_blue" href="/wechat/lessons">
+			    <div class="tiles-head tiles_blue1">
+			        <div class="text-center"><i class="fa fa-table nav_icon"></i></div>
+			    </div>
+			    <div class="tiles-body blue1">我的课表</div>
+			  </a>
+		   </div>
+		   <div class="clearfix"> </div>
+		 </div>
+		 <div class="box_1">
+		   <div class="col-md-6 col_1_of_2 span_1_of_2">
+             <a class="tiles_info" onclick="Toast('暂不开放！',2000);">
+			    <div class="tiles-head fb1">
+			        <div class="text-center"><i class="fa fa-bell-o"></i></div>
+			    </div>
+			    <div class="tiles-body fb2">CET报名</div>
+			 </a>
+		   </div>
+		   <div class="col-md-6 col_1_of_2 span_1_of_2">
+              <a class="tiles_info tiles_blue" href="/wechat/gradepoint">
+			    <div class="tiles-head tw1">
+			        <div class="text-center"><i class="fa fa-file"></i></div>
+			    </div>
+			    <div class="tiles-body tw2">平均绩点</div>
+			  </a>
+		   </div>
+		   <div class="clearfix"> </div>
+		   </div>
+		  </div>
+		  <!-- <div class="cloud">
+			<div class="grid-date">
+				<div class="date">
+					<p class="date-in">New York</p>
+					<span class="date-on">°F °C </span>
+					<div class="clearfix"> </div>							
+				</div>
+				<h4>30°<i class="fa fa-cloud-upload"> </i></h4>
+			</div>
+			<p class="monday">Monday 10 July</p>
+		  </div> -->
+		</div>
+		<div class="clearfix"> </div>
+		<script type="text/javascript">
+			function Toast(msg,duration){
+			duration=isNaN(duration)?3000:duration;
+			var m = document.createElement('div');
+			m.innerHTML = msg;
+			m.style.cssText="width:150px; min-width:100px;opacity:0.8; height:40px; color:#fff; line-height:40px; text-align:center; border-radius:5px; position:fixed; top:40%; left:30%; z-index:999999; font-weight:bold; filter: alpha(opacity=80); background:#000";
+		    document.body.appendChild(m);
+			setTimeout(function() {
+				var d = 0.5;
+		        m.style.webkitTransition = '-webkit-transform ' + d + 's ease-in, opacity ' + d + 's ease-in';
+		        m.style.opacity = '0';
+				setTimeout(function() { document.body.removeChild(m) }, d * 1000);
+			}, duration);
+		}
+		</script>
+{% endblock %}		
+

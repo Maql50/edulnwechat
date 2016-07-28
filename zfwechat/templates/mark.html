@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title%}
+个人成绩
+{% endblock %}
+
+{% block stuName %}
+{{ name }}
+{% endblock %}
+
+{% block main %}
+    <div class="bs-example4" data-example-id="contextual-table">
+    <table class="table">
+      <thead>
+        <tr class="info">
+          <th>学年</th>
+          <th>学期</th>
+          <th>课程名称</th>
+          <th>学分</th>
+          <th>绩点</th>
+          <th>成绩</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mark_obj in all_mark_obj %}
+          <tr 
+            {% if forloop.counter|divisibleby:'2' %}
+              class="info"
+            {% endif %}
+          >
+            <td>{{mark_obj.year}}</td>
+            <td>{{mark_obj.term}}</td>
+            <td>{{mark_obj.lesson}}</td>
+            <td>{{mark_obj.credit}}</td>
+            <td>{{mark_obj.gradepoint}}</td>
+            <td>
+              {% if mark_obj.gradepoint > 0 %}
+                <span class="label btn_6 label-success">{{ mark_obj.score }}</span>
+              {% else %}
+                  <span class="label btn_6 label-danger">{{mark_obj.score}}</span>
+              {% endif%}
+            </td>
+          </tr>
+        {% endfor%}
+      </tbody>
+    </table>
+   </div>
+{% endblock %}   
