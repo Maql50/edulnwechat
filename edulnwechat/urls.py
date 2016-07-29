@@ -9,11 +9,11 @@ urlpatterns = [
     url(r'^wechat/logout$',logout),
     url(r'^wechat/marks$',getMark),
     url(r'^wechat/login$',login),
-    url(r'^wechat/wx.do$',doGet),
+    url(r'^wechat/wx.do$',doWechat),
     url(r'^wechat/lessons$',getLesson),
-    url(r'^wechat/index$',main),
+    url(r'^wechat/index$',getMain),
     url(r'^wechat/gradepoint$',getGradePoint),
 ]
 
-handler404 = page_not_found
-handler500 = page_error
+handler404 = pageNoFound
+handler500 = pageError

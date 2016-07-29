@@ -1,38 +1,34 @@
-# -*- coding:utf-8 -*-
+# coding:utf-8
 import sys
+#设置默认字符编码为UTF-8
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import json
+from forms import *
 from django.shortcuts import render_to_response,render
 from django.http import HttpResponse,HttpResponseRedirect
 from zfwechat.models import *
 from util import *
 from lingnanedu import *
-from django import forms
 from time import clock
 from django.template import loader,Context
-
-
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
-class UserForm(forms.Form):
-	username = forms.CharField(max_length=12, min_length=6, required=True,widget=forms.TextInput(attrs={'placeholder': u'请输入你的学号...'}),)
-	password = forms.CharField( min_length=6,required=True,widget=forms.PasswordInput(attrs={'placeholder': u'请输入你的密码...'},))
-	isAutoLogin = forms.BooleanField(required=False)
-	isRemember = forms.BooleanField(required=False)
+from django.core import mail
 
 def getMark(request):
+	'''获取成绩请求'''
 	student = json.loads(request.session['student'], object_hook=dict2student)
-	all_mark_obj = LingnanMark().getMark(student.studentNo,student.studentPsw, student.name)
+	all_mark_obj = ZhengFangEduSytem().getMark(student.studentNo,student.studentPsw, student.name)
 	return render_to_response('mark.html',{'all_mark_obj': all_mark_obj, 'name' : student.name })
 
-def main(request):
+def getMain(request):
+	'''获取主页面'''
 	student = json.loads(request.session['student'], object_hook=dict2student)
 	return render_to_response('index.html', {'name', student.name})
 
 def login(request):
-	#提交表单
+	'''用户登录'''
+	#用户提交表单
 	if request.method == 'POST':
-		start = clock()
 		form = UserForm(request.POST)
 		if form.is_valid():
 			data = form.cleaned_data
@@ -47,7 +43,7 @@ def login(request):
 				return render_to_response('login.html',{'form':form})
 
 			#成功则返回名称，否则返回false
-			result = LingnanMark().login(student.studentNo,student.studentPsw)
+			result = ZhengFangEduSytem().login(student.studentNo,student.studentPsw)
 			if result == False:
 				form = UserForm()
 				form.failed = True
@@ -77,7 +73,7 @@ def login(request):
 		if "username" in request.COOKIES and 'password' in request.COOKIES:
 			student = Student(request.COOKIES['username'],request.COOKIES['password'],"")
 			#成功则返回名称，否则返回false
-			result = LingnanMark().login(student.studentNo,student.studentPsw)
+			result = ZhengFangEduSytem().login(student.studentNo,student.studentPsw)
 			if result == False:
 				form = UserForm()
 				form.failed = True
@@ -90,7 +86,6 @@ def login(request):
 	 		return response
  	if "isRemember" in request.COOKIES:
 		if "username" in request.COOKIES and 'password' in request.COOKIES:
-			print request.COOKIES['password']
 			form = UserForm(initial={'username':request.COOKIES['username'],'password':request.COOKIES['password']})
 			return render_to_response('login.html',{'form':form})
 
@@ -98,33 +93,42 @@ def login(request):
 	return render_to_response('login.html',{'form':form})
 
 def logout(request):
+	'''退出登录'''
 	form = UserForm()
 	response = HttpResponseRedirect('login')
 	response.delete_cookie('username')
 	response.delete_cookie('password')
+	#清空session
 	del request.session['student']
 	return response
 
-def page_not_found(request):
-	return HttpResponse(content="page_not_found")
+def pageNoFound(request):
+	'''404发送邮件给管理员'''
+	mail.mail_admins("subject", "message", connection=None, html_message=None)
+	return render_to_response('404.html')
 
-def page_error(request):
-	return HttpResponse(content="page_error")
+def pageError(request):
+	'''500发送邮件给管理员'''
+	mail.mail_admins("subject", "message", connection=None, html_message=None)
+	return render_to_response('500.html')
 
 def getLesson(request):
+	'''获取课程'''
 	#从session获取信息
 	student = json.loads(request.session['student'], object_hook=dict2student)
 	template = loader.get_template('lessons.html')
-	lessons = LingnanMark().getLesson(student.studentNo, student.studentPsw, student.name)
+	lessons = ZhengFangEduSytem().getLesson(student.studentNo, student.studentPsw, student.name)
 	context = Context({'lessons':lessons, 'name':student.name})
 	return HttpResponse(template.render(context))
 
 def getGradePoint(request):
+	'''获取平均绩点'''
 	student = json.loads(request.session['student'], object_hook=dict2student)
-	avgGradePoint = LingnanMark().getAvgGradePoint(student.studentNo, student.studentPsw)
+	avgGradePoint = ZhengFangEduSytem().getAvgGradePoint(student.studentNo, student.studentPsw, student.name)
 	return render_to_response('gradepoint.html', {'avgGradePoint': avgGradePoint, 'name': student.name })
 
-def doGet(request):
+def doWechat(request):
+	'''接收微信服务器发送的请求'''
 	if request.method == 'GET':
 		signature = request.GET['signature']
 		timestamp = request.GET['timestamp']
@@ -133,20 +137,10 @@ def doGet(request):
 		if CheckUtil().checkSignature(signature, timestamp, nonce):
 			return HttpResponse(echostr)
 		
-
 	if request.method == 'POST':
 		xml = request.body
 		util = MessageUtil()
 		xml_result = util.type_handler(xml)
-		#if dict.has_key('Event'):
-		#	dict['MsgType'] = 'text'
-		#	dict['Content'] = u'<a href="http://dweimaql.tunnel.qydev.com/wechat/login" >欢迎关注！点此登录 </a>'
-		#dict['MsgType'] = 'news'
-		#dict['Title'] = 'hehe'
-		#dict['Description'] = 'laile'
-		#dict['PicUrl'] = ''
-		#dict['Url'] =  'http://mp.weixin.qq.com/s?__biz=MzAwOTgwODc5MQ==&tempkey=dMkY26v8Rd75CPTkFQovft0mbl6NIU57x6xopcM0icpVVsjNQEjYoJSRuHtUNiLrdrrdO2vPm8Ls2sYRSOfHLBPMsOkjrsUaTgJTYLR73tLLPbV5UfvSmr3XZWBY4q75fw4WiidkER0Hhbx0%2BVsibw%3D%3D&#rd'#'http://dweimaql.tunnel.qydev.com/wechat/login'
 		return HttpResponse(xml_result)		
-
 	return HttpResponse('none')
 

@@ -12,6 +12,7 @@ import models
 import cookielib
 
 class CheckUtil(object):
+'''微信服务器校验工具，用于确认身份'''
 	__token = 'wei'
 
 	def checkSignature(self, signature, timestamp, nonce):
@@ -25,8 +26,10 @@ class CheckUtil(object):
 
 
 class MessageUtil(object):
-	#收到两种类型的消息，一个关注，二十普通消息
+	'''接收微信服务器端发送过来的用户消息'''
+
 	def type_handler(self, str_xml):
+		'''处理两种类型的消息： 1.关注消息，2.普通消息'''
 		xml = etree.fromstring(str_xml)
 
 		#被关注消息
@@ -41,6 +44,7 @@ class MessageUtil(object):
 		return xml_str
 
 	def receiveCommonMsg(self, xml):
+		'''处理接收到的普通消息'''
 		dict = {}
 		dict['FromUserName'] = xml.find('ToUserName').text
 		dict['ToUserName'] = xml.find('FromUserName').text
@@ -56,6 +60,8 @@ class MessageUtil(object):
 		return xml_str
 
 	def sendCommonMsg(self, dict):
+		'''发送普通消息给用户'''
+
 		xml_str = '''<xml>
 		<ToUserName><![CDATA[%s]]></ToUserName>
 		<FromUserName><![CDATA[%s]]></FromUserName>
@@ -66,6 +72,7 @@ class MessageUtil(object):
 		return xml_str
 
 	def receiveEventMsg(self, xml):
+		'''处理接收到的事件消息'''
 		dict = {}
 		dict['FromUserName'] = xml.find('ToUserName').text
 		dict['ToUserName'] = xml.find('FromUserName').text
@@ -76,6 +83,7 @@ class MessageUtil(object):
 		return xml_str		
 	
 	def sendLoginMsg(self, dict):
+		'''发送登录系统图文消息给用户'''
 		dict['MsgType'] = 'news'
 		dict['Title'] = '岭师正方微信登录'
 		dict['Description'] = '岭南师范学院正方教务系统微信平台登录'
@@ -84,6 +92,7 @@ class MessageUtil(object):
 		return self.dictToXmlNews(dict)
 
 	def sendAboutMsg(self, dict):
+		'''发送关于本帐号图文消息给用户'''
 		dict['MsgType'] = 'news'
 		dict['Title'] = '关于本账号'
 		dict['Description'] = '关于本账号的一点说明'
@@ -92,12 +101,14 @@ class MessageUtil(object):
 		return self.dictToXmlNews(dict)
 
 	def sendTipsMsg(self, dict):
+		'''发送提示消息给用户'''
 		dict['Content'] = u'您好,回复：\n  1.<a href="http://dweimaql.tunnel.qydev.com/wechat/login">登录正方系统</a> \n  2.关于本账户'		
 		dict['MsgType'] = 'text'
 		xml_str = self.sendCommonMsg(dict)
 		return xml_str
 
 	def dictToXmlNews(self, dict):
+		'''将字典转换为xml的图文消息'''
 		xml_str = '''<xml>
 			<ToUserName><![CDATA[%s]]></ToUserName>
 			<FromUserName><![CDATA[%s]]></FromUserName>
@@ -116,17 +127,21 @@ class MessageUtil(object):
 		return xml_str
 
 class WechatUtil(object):
-	APPID = "wx0e6cdefb2b1c31af"#"wx72ad5103209497ca"
-	APPSECRET = "dacd2ccc518d01445f5056536b042712"#"87c98fdf844ce4215791d89ec25055c7"
-	ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET"
-	CREATE_MENU_URL = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN"
+	'''微信工具类(由于个人订阅号的局限性，本类暂时没有用)'''
+	__APPID = "wx0e6cdefb2b1c31af"
+	__APPSECRET = "dacd2ccc518d01445f5056536b042712"
+	__ACCESS_TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET"
+	__CREATE_MENU_URL = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=ACCESS_TOKEN"
 
 	def doGetStr(self, url):
+		'''获得html'''
 		jsonHtml = urllib2.urlopen(url).read()
 		return jsonHtml
 
 	def doPostStr(self, url, menu):
-		data =  '''{
+		data =  
+		'''
+		{
                  "button":[
                      {    
           "type":"click",
@@ -149,9 +164,10 @@ class WechatUtil(object):
 		print eval(jsonHtml)
 
 	def getAccessToken(self):
+		'''获取accessToken'''
 		accessToken = models.AccessToken()
-		url = self.ACCESS_TOKEN_URL.replace(
-		"APPID", self.APPID).replace("APPSECRET", self.APPSECRET)
+		url = self.__ACCESS_TOKEN_URL.replace(
+		"APPID", self.__APPID).replace("APPSECRET", self.__APPSECRET)
 		jsonHtml = self.doGetStr(url)
 		dict = eval(jsonHtml)
 		accessToken._token = dict['access_token']
@@ -159,22 +175,11 @@ class WechatUtil(object):
 		return accessToken
 
 	def createMenu(self, token, menu):
+		'''创建微信菜单'''
 		result = -1
-		url = self.CREATE_MENU_URL.replace("ACCESS_TOKEN", token)
+		url = self.__CREATE_MENU_URL.replace("ACCESS_TOKEN", token)
 		jsonDict = self.doPostStr(url, menu);
 		if jsonDict != None:
 			result = jsonObject.getInt("errcode")
 		 
 		return result 
-
-
-if __name__ == '__main__':
-    # dict = {"age": 1, "price" : 100, "name" : 'wjw'}
-    #print MessageUtil().xmlToDict(MessageUtil().dictToXml('xml', dict))
-    token = WechatUtil().getAccessToken()
-    print token._token
-    print token._expiresIn
-
-    # 20:17
-    #token = 'YEVHaeRtsv-hnJSmHH17CQYKa-VqefQgJUv4IjHbqu3ITe0X_4j1-LKrpU2GxP5yKzZkUfqyUZTAy2MRUBK4tnEb9GjY6P9eg0YhUpecYpDFgkjejUOx4q69B2NCDuBySBQfAAAJSH'
-    WechatUtil().createMenu(token._token, "")

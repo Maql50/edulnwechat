@@ -12,49 +12,24 @@ import requests
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-class Mark(object):
-	def __init__(self, year, term, lesson, prop, credit, gradepoint, score):
-		self.year = year
-		self.term = term
-		self.lesson = lesson
-		self.prop = prop
-		self.credit = credit
-		self.gradepoint = float(gradepoint)
-		self.score = score
+class ZhengFangEduSytem(object):
+	'''岭南师范学院正方教务系统工具'''
 
-	def __str__(self):
-		return self.year+"学期 "+self.lesson + ":" +self.score
-
-class Schedule(object):
-	def __init__(self, weeks):
-		#一周七天
-		self.weeks = weeks
-
-class Week(object):
-	def __init__(self, lessons):
-		#11节课
-		self.lessons = lessons
-
-class Lesson(object):
-	def __init__(self, name):
-		#课程名称
-		self.name = name
-
-class LingnanMark(object):
-
-	#获取表格
-	def gettable(self, score_html):
+	def getTable(self, score_html):
+		'''获取整个表格'''
 		trs = re.search('<table class="datelist" cellspacing="0" cellpadding="3" border="0" id="Datagrid1" style="DISPLAY:block">(.*)</table>',score_html, re.S).group(1)
 		return trs;
 
-	def get_tr(self,trs):
+	def getTr(self,trs):
+		'''获取成绩表格内的每一行'''
 		list = re.findall(u'<tr>(.*?)</tr>',trs, re.S)
 		list.extend(re.findall('<tr class="alt">(.*?)</tr>',trs, re.S))
 		return list;		
 
-	def get_all_lesson_obj(self,score_html):
-		trs = self.gettable(score_html)
-		tr_list = self.get_tr(trs)
+	def getAllLessonObj(self,score_html):
+		'''将个人成绩页面中的成绩转为对象类型'''
+		trs = self.getTable(score_html)
+		tr_list = self.getTr(trs)
 
 		list_lesson_obj = []
 		for tr in tr_list:
@@ -66,33 +41,33 @@ class LingnanMark(object):
 
 		return sorted(list_lesson_obj, key = attrgetter('year','term'), reverse=True)
 			 
-
-	#获取首页html
 	def getPage(self, url):
+		'''获取url对应的html'''
 		html_cont = requests.get(url)
 		html_cont.encoding = 'utf-8' 
 		return html_cont.text
 
-	def get_post_page(self, postdate, headers):
+	def getPostPage(self, postdate, headers):
+		'''提交post表单'''
 		cookie = cookielib.CookieJar()
 		opener = urllib2.build_opener(urllib2.HTTPHandler(cookie))
 		myrequest = urllib2.Request(url, postdate, headers)
 		page = opener.open(myrequest).read()
 		return page
 
-	#获取页面viewstatus
-	def getviewstatus(self, html_cont):
+	def getViewStatus(self, html_cont):
+		'''获取页面viewstatus(该值将作为表单提交到下一个页面)'''
 		return re.search('<input type="hidden" name="__VIEWSTATE" value="(.*?)" />', html_cont, re.S).group(1)
 
-	#获取名字
 	def getName(self, page, id): 
+		'''获取学生名字'''
 		match = re.search(u'<span id="xhxm">'+id+'  (.*?)同学</span></em>', page.decode('utf-8'), re.S)
 		if match is not None:
 			return match.group(1)
 		return False			
 
-	#输出内容
 	def gethtml(self, html_score):
+		'''将获得的html页面为干净的html'''
 		html = ""
 		html += ("<html>")
 		html += ("<head>")
@@ -100,20 +75,19 @@ class LingnanMark(object):
 		html += ("</head>")
 		html += ("<body>")
 		html += ("<table border='1px'>")
-		html += self.gettable(html_score)
+		html += self.getTable(html_score)
 		html += ("</table>")
 		html += ("</body>")
 		html += ("</html>")
 		return html
 
 	def getLesson(self, id , psw, name):
-
+		'''获取课程表'''
 		getdata = urllib.urlencode({
 			'xh':id,
-			'xm':name.encode('gb2312'),#self.getName(page, id).encode('gb2312'),
+			'xm':name.encode('gb2312'),
 			'gnmkdm':'N121603'
 		})
-		print getdata
 		head = {
 			'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
 			'Accept-Encoding':'gzip, deflate, sdch',
@@ -154,6 +128,8 @@ class LingnanMark(object):
 		return getLessonTable
 
 	def login(self, id, psw):
+		'''学生登录'''
+
 		#初始化基本内容
 		url = 'http://202.192.143.243/(51gpbo45h4ah5yrvylalsu45)/default6.aspx'
 
@@ -162,7 +138,7 @@ class LingnanMark(object):
 		
 		#设置post数据
 		postdate = urllib.urlencode({
-			'__VIEWSTATE':self.getviewstatus(page),
+			'__VIEWSTATE':self.getViewStatus(page),
 			'tnameXw':'yhdl',
 			'tbtnsXw':'yhdl|xwxsdl',
 			'txtYhm':id,
@@ -191,42 +167,11 @@ class LingnanMark(object):
 
 		return result
 
-	def getAvgGradePoint(self, id, psw):
-		#初始化基本内容
-		url = 'http://202.192.143.243/(51gpbo45h4ah5yrvylalsu45)/default6.aspx'
-
-		page = self.getPage(url)
-
-		#设置post数据
-		postdate = urllib.urlencode({
-			'__VIEWSTATE':self.getviewstatus(page),
-			'tnameXw':'yhdl',
-			'tbtnsXw':'yhdl|xwxsdl',
-			'txtYhm':id,
-			'txtXm':psw,
-			'txtMm':psw,
-			'rblJs':'(unable to decode value)',
-			'btnDl':'(unable to decode value)'
-		})
-
-		#设置http头
-		headers = {
-			'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
-		}
-
-		#设置cookie
-		cookie = cookielib.CookieJar()
-		opener = urllib2.build_opener(urllib2.HTTPHandler(cookie))
-		myrequest = urllib2.Request(url, postdate, headers)
-		loginPage = opener.open(myrequest).read()
-		page = unicode(loginPage, 'gb2312').encode("utf-8") 
-
-		if self.getName(page, id) == False:
-			return False
-
+	def getAvgGradePoint(self, id, psw, name):
+		'''获取学生平均几点'''
 		getdata = urllib.urlencode({
 			'xh':id,
-			'xm':self.getName(page, id),#unicode(self.getName(page, id), 'utf-8').encode("gb2312"),
+			'xm':name,
 			'gnmkdm':'N121605'
 		})
 
@@ -238,7 +183,6 @@ class LingnanMark(object):
 			'Connection':'keep-alive',
 			'Content-Type':'application/x-www-form-urlencoded',
 			'Host':'202.192.143.243',
-			'Cookie':cookie,
 			'Origin':'http://222.24.19.201',
 			'Pragma':'no-cache',
 			'Upgrade-Insecure-Requests':1,	
@@ -246,6 +190,8 @@ class LingnanMark(object):
 			'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
 			}
 
+		cookie = cookielib.CookieJar()
+		opener = urllib2.build_opener(urllib2.HTTPHandler(cookie))		
 	 	myrequest = urllib2.Request('http://202.192.143.243/(51gpbo45h4ah5yrvylalsu45)/xscjcx.aspx?'+getdata, None, head)
 		#获取第二个登录页面
 		loginPage = unicode(opener.open(myrequest).read(), 'gb2312').encode('utf-8')
@@ -253,8 +199,7 @@ class LingnanMark(object):
 		data = urllib.urlencode({
 			"__EVENTTARGET": "",
 			"__EVENTARGUMENT":"",
-			"__VIEWSTATE":self.getviewstatus(loginPage),
-			#"btn_zcj":unicode("历年成绩",'utf-8').encode('gb2312'),
+			"__VIEWSTATE":self.getViewStatus(loginPage),
 			"Button1":unicode("成绩统计",'utf-8').encode('gb2312'),
 			"hidLanguage":"",
 			"ddlXN":"",
@@ -264,14 +209,15 @@ class LingnanMark(object):
 
 		myrequest = urllib2.Request('http://202.192.143.243/(51gpbo45h4ah5yrvylalsu45)/xscjcx.aspx?'+getdata,data, head)
 		#获取第三个页面，即成绩页面
+		
 		html = opener.open(myrequest)
 		result = unicode(html.read(), 'gb2312').encode('utf-8')
 		avgGradePoint = re.search(r'<span id="pjxfjd"><b>(.*?)</b></span></td>', result, re.S).group(1)
 		return avgGradePoint
-		#return result 
 
 
 	def getMark(self, id, psw, name):
+		'''获取个人成绩'''
 		getdata = urllib.urlencode({
 			'xh':id,
 			'xm':name,#self.getName(page, id),
@@ -303,7 +249,7 @@ class LingnanMark(object):
 		data = urllib.urlencode({
 			"__EVENTTARGET": "",
 			"__EVENTARGUMENT":"",
-			"__VIEWSTATE":self.getviewstatus(loginPage),
+			"__VIEWSTATE":self.getViewStatus(loginPage),
 			"btn_zcj":unicode("历年成绩",'utf-8').encode('gb2312'),
 			"hidLanguage":"",
 			"ddlXN":"",
@@ -316,12 +262,5 @@ class LingnanMark(object):
 		html = opener.open(myrequest)
 		result = unicode(html.read(), 'gb2312').encode('utf-8')
 
-		all_lesson_obj = self.get_all_lesson_obj(result)
-		return all_lesson_obj			
- 
-
-if __name__ == '__main__':
-	ling = LingnanMark()
-	#ling.getMark('2013874116', 'zc12230109')
-	print ling.getAvgGradePoint('2013874116','zc12230109')
-	
+		allLessonObj = self.getAllLessonObj(result)
+		return allLessonObj

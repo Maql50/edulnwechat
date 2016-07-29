@@ -25,7 +25,6 @@ class AccessToken(object):
 	def expiresIn (self):
 		return self._expiresIn
 
- 
 	@expiresIn.setter
 	def expiresIn (self, expiresIn):
 		self._expiresIn = expiresIn
