@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-
+from __future__ import unicode_literals
 import hashlib
 from lxml import etree
 import time
@@ -10,9 +10,11 @@ import urllib2
 import urllib
 import models
 import cookielib
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
 
 class CheckUtil(object):
-'''微信服务器校验工具，用于确认身份'''
+	'''微信服务器校验工具，用于确认身份'''
 	__token = 'wei'
 
 	def checkSignature(self, signature, timestamp, nonce):
@@ -54,6 +56,8 @@ class MessageUtil(object):
 			xml_str = self.sendLoginMsg(dict)
 		elif dict['Content'] == '2':
 			xml_str = self.sendAboutMsg(dict)
+		elif dict['Content'] == 'hosts':
+			xml_str = self.sendHosts(dict)
 		else:
 			xml_str = self.sendTipsMsg(dict)
 
@@ -100,6 +104,13 @@ class MessageUtil(object):
 		dict['Url'] = 'http://mp.weixin.qq.com/s?__biz=MzAwOTgwODc5MQ==&tempkey=dMkY26v8Rd75CPTkFQovft0mbl6NIU57x6xopcM0icpVVsjNQEjYoJSRuHtUNiLrdrrdO2vPm8Ls2sYRSOfHLBPMsOkjrsUaTgJTYLR73tLLPbV5UfvSmr3XZWBY4q75fw4WiidkER0Hhbx0%2BVsibw%3D%3D&#rd'
 		return self.dictToXmlNews(dict)
 
+	def sendHosts(self, dict):
+		'''发送hosts消息给用户'''
+		dict['Content'] = u'<a href="http://dweimaql.tunnel.qydev.com/wechat/hosts">最新hosts</a>'		
+		dict['MsgType'] = 'text'
+		xml_str = self.sendCommonMsg(dict)
+		return xml_str	
+
 	def sendTipsMsg(self, dict):
 		'''发送提示消息给用户'''
 		dict['Content'] = u'您好,回复：\n  1.<a href="http://dweimaql.tunnel.qydev.com/wechat/login">登录正方系统</a> \n  2.关于本账户'		
@@ -139,8 +150,7 @@ class WechatUtil(object):
 		return jsonHtml
 
 	def doPostStr(self, url, menu):
-		data =  
-		'''
+		data =  '''
 		{
                  "button":[
                      {    
@@ -183,3 +193,17 @@ class WechatUtil(object):
 			result = jsonObject.getInt("errcode")
 		 
 		return result 
+
+class SendEmail(object):
+
+	@staticmethod
+	def sendEmailToStudent(subject="", text_content="", html_content="", from_email="", to_email=""):
+		subject = '岭师正方系统微信平台'
+		text_content = '你有新的成绩更新.'
+		html_content = '<a href="http://127.0.0.1:8000/wechat/email" />你有新的成绩更新.</a>'
+		from_email = '18312801131@163.com'
+		to_email = ['784567806@qq.com']
+		email = EmailMultiAlternatives(subject, text_content, from_email, to_email)
+		email.attach_alternative(html_content, 'text/html')
+		email.send()
+

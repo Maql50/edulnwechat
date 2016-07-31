@@ -12,6 +12,16 @@ import requests
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+class Mark(object):
+	def __init__(self, year, term, lesson, prop, credit, gradepoint, score):
+		self.year = year
+		self.term = term
+		self.lesson = lesson
+		self.prop = prop
+		self.credit = credit
+		self.gradepoint = float(gradepoint)
+		self.score = score
+
 class ZhengFangEduSytem(object):
 	'''岭南师范学院正方教务系统工具'''
 
@@ -88,6 +98,7 @@ class ZhengFangEduSytem(object):
 			'xm':name.encode('gb2312'),
 			'gnmkdm':'N121603'
 		})
+
 		head = {
 			'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
 			'Accept-Encoding':'gzip, deflate, sdch',
@@ -224,6 +235,11 @@ class ZhengFangEduSytem(object):
 			'gnmkdm':'N121605'
 		})
 
+		print "***********"
+		print getdata
+		print "***********"
+
+
 		head = {
 			'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
 			'Accept-Encoding':'gzip, deflate, sdch',
@@ -245,6 +261,8 @@ class ZhengFangEduSytem(object):
 		opener = urllib2.build_opener(urllib2.HTTPHandler(cookie))
 	 	myrequest = urllib2.Request('http://202.192.143.243/(51gpbo45h4ah5yrvylalsu45)/xscjcx.aspx?'+getdata, None, head)
 		loginPage = unicode(opener.open(myrequest).read(), 'gb2312').encode('utf-8')
+ 
+
 
 		data = urllib.urlencode({
 			"__EVENTTARGET": "",

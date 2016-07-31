@@ -7,12 +7,14 @@ import json
 from forms import *
 from django.shortcuts import render_to_response,render
 from django.http import HttpResponse,HttpResponseRedirect
-from zfwechat.models import *
-from util import *
-from lingnanedu import *
+from zfwechat.models import StudentModel
 from time import clock
 from django.template import loader,Context
 from django.core import mail
+from host import *
+from zfwechat.models import *
+from util import *
+from lingnanedu import *
 
 def getMark(request):
 	'''获取成绩请求'''
@@ -144,3 +146,23 @@ def doWechat(request):
 		return HttpResponse(xml_result)		
 	return HttpResponse('none')
 
+def getHosts(request):
+	hosts = getHost()
+	return HttpResponse(hosts)
+
+def enableEmail(request):
+	student = json.loads(request.session['student'], object_hook = dict2student)
+	try:
+		studentOld = StudentModel.objects.get(studentNo = student.studentNo)
+	except:
+		studentOld = None
+	if studentOld is not None:
+		return HttpResponse("failed")
+	mark_obj = ZhengFangEduSytem().getMark(student.studentNo, student.studentPsw, student.name)
+	email = '784567806@qq.com'
+	StudentModel.objects.create(studentNo = student.studentNo, studentPsw = student.studentPsw, email = email,markNum = len(mark_obj))
+
+	# if studentOld.markNum < len(mark_obj):
+	# 	SendEmail.sendEmailToStudent()
+
+	return HttpResponse("success")
