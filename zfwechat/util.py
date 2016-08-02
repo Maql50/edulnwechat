@@ -10,6 +10,7 @@ import urllib2
 import urllib
 import models
 import cookielib
+from models import StudentModel
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 
@@ -195,15 +196,21 @@ class WechatUtil(object):
 		return result 
 
 class SendEmail(object):
-
 	@staticmethod
-	def sendEmailToStudent(subject="", text_content="", html_content="", from_email="", to_email=""):
-		subject = '岭师正方系统微信平台'
-		text_content = '你有新的成绩更新.'
-		html_content = '<a href="http://127.0.0.1:8000/wechat/email" />你有新的成绩更新.</a>'
-		from_email = '18312801131@163.com'
-		to_email = ['784567806@qq.com']
+	def sendEmailToStudent(subject = '岭师正方系统微信平台', text_content='你有新的成绩更新.', html_content='<a href="http://127.0.0.1:8000/wechat/email" />你有新的成绩更新.</a>', from_email='18312801131@163.com', to_email=""):
 		email = EmailMultiAlternatives(subject, text_content, from_email, to_email)
 		email.attach_alternative(html_content, 'text/html')
 		email.send()
 
+	def sendEmailTask(self):
+		students = StudentModel.objects.all()
+		for student in students:
+			mark_obj = ZhengFangEduSytem().getMark(student.studentNo, student.studentPsw, student.name)
+			if mark_obj != False:
+				if student.markNum < len(mark_obj):
+					SendEmail.sendEmailToStudent(to_email = [student.email])
+					print "send"
+			else:
+				SendEmail.sendEmailToStudent(text_content = "由于您修改了密码，本系统将不再为您发送邮件服务，谢谢~", to_email = [student.email])
+				StudentModel.objects.get(studentNo=student.studentNo).delete()
+				print "nosend"

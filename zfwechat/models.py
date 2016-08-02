@@ -33,7 +33,8 @@ class StudentModel(models.Model):
  	studentNo = models.CharField(max_length=11)
  	studentPsw = models.CharField(max_length=255)
  	email = models.CharField(max_length=55)
- 	markNum = models.IntegerField(max_length=11)
+ 	name = models.CharField(max_length=10)
+ 	markNum = models.IntegerField()
 
  	def __unicode__(self):
  		return self.studentNo+" "+ self.studentPsw+" "

@@ -152,17 +152,22 @@ def getHosts(request):
 
 def enableEmail(request):
 	student = json.loads(request.session['student'], object_hook = dict2student)
-	try:
-		studentOld = StudentModel.objects.get(studentNo = student.studentNo)
-	except:
-		studentOld = None
-	if studentOld is not None:
-		return HttpResponse("failed")
-	mark_obj = ZhengFangEduSytem().getMark(student.studentNo, student.studentPsw, student.name)
-	email = '784567806@qq.com'
-	StudentModel.objects.create(studentNo = student.studentNo, studentPsw = student.studentPsw, email = email,markNum = len(mark_obj))
-
-	# if studentOld.markNum < len(mark_obj):
-	# 	SendEmail.sendEmailToStudent()
-
-	return HttpResponse("success")
+	if request.method == "POST":
+		form = EmailForm(request.POST)
+		if form.is_valid():
+			data = form.cleaned_data
+			email = data["email"]
+			try:
+				studentOld = StudentModel.objects.get(studentNo = student.studentNo)
+			except:
+				studentOld = None
+			if studentOld is not None:
+				message = "您已经提交过邮箱了哦~"
+				return render_to_response("email.html", {'name':student.name, 'message':message})
+			mark_obj = ZhengFangEduSytem().getMark(student.studentNo, student.studentPsw, student.name)
+			StudentModel.objects.create(studentNo = student.studentNo, studentPsw = student.studentPsw, email = email,markNum = len(mark_obj), name = student.name)
+			message = "邮件提交成功，一有成绩更新我们会马上通知您的！"
+			return render_to_response("email.html", {'name':student.name, 'message':message})
+	else:
+		form = EmailForm()
+		return render_to_response("email.html", {'form':form,'name':student.name})

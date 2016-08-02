@@ -12,4 +12,6 @@ class UserForm(forms.Form):
 	isAutoLogin = forms.BooleanField(required=False)
 	isRemember = forms.BooleanField(required=False)
 
- 
+class EmailForm(forms.Form):
+	'''用户邮箱'''
+	email = forms.CharField(max_length=55, required=True)

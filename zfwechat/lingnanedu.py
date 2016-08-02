@@ -235,11 +235,6 @@ class ZhengFangEduSytem(object):
 			'gnmkdm':'N121605'
 		})
 
-		print "***********"
-		print getdata
-		print "***********"
-
-
 		head = {
 			'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
 			'Accept-Encoding':'gzip, deflate, sdch',
@@ -261,8 +256,9 @@ class ZhengFangEduSytem(object):
 		opener = urllib2.build_opener(urllib2.HTTPHandler(cookie))
 	 	myrequest = urllib2.Request('http://202.192.143.243/(51gpbo45h4ah5yrvylalsu45)/xscjcx.aspx?'+getdata, None, head)
 		loginPage = unicode(opener.open(myrequest).read(), 'gb2312').encode('utf-8')
- 
-
+ 		print type(loginPage)
+		if re.search(name.encode("utf-8"), loginPage, re.S) is None:
+			return False
 
 		data = urllib.urlencode({
 			"__EVENTTARGET": "",

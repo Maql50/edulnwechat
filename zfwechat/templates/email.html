@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title%}
+邮件服务
+{% endblock %}
+
+{% block stuName %}
+{{ name }}
+{% endblock %}
+
+{% block main %}
+
+{% if not message  %}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <form method="post">
+         <div class="form-group">
+            <label>您的邮箱：</label>
+            <div >
+               {{ form.email }}
+            </div>
+         </div>
+         <div class="form-group">
+            <div>
+               <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-envelope tag_02"></span>提交</button>
+            </div>
+         </div>
+      </form>
+      <div class="alert alert-warning alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>本功能将会保存您的账号密码，若有成绩更新会立即通知您！</strong>
+      </div>    
+    </div>
+  </div>
+{% else %}
+ <div class="alert alert-success" role="alert"><center>{{ message }}</center></div>
+{% endif %}
+
+{% endblock %}   

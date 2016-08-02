@@ -553,6 +553,9 @@ a.tiles_info, a.shortcut-tiles {
 .tw2{
   background: #00aced;
 }
+.gr1{
+  background: RGB(123,185,66)
+}	
 .content_bottom{
 	margin-bottom:1em;
 }
